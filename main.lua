@@ -4,15 +4,15 @@ getgenv().ShowTracers = true
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Architect Suite | V42 Pure",
-   LoadingTitle = "Numbers Only Edition",
+   Name = "Architect Suite | V45 Cash",
+   LoadingTitle = "Custom Money Edition",
    ConfigurationSaving = {Enabled = false}
 })
 
 local Main = Window:CreateTab("Control Center")
 local Combat = Window:CreateTab("Combat Pro")
 
--- // وظيفة الفرز لضمان وضع الرقم فوق والاسم تحت
+-- // وظيفة ترتيب النصوص فوق الرأس
 local function GetSortedLabels(char)
     local labels = {}
     if char then
@@ -24,12 +24,32 @@ local function GetSortedLabels(char)
     return labels
 end
 
--- // --- [ إحصائياتك أنت ] ---
-Main:CreateSection("My Profile")
+-- // --- [ القسم الجديد: التحكم بالفلوس ] ---
+Main:CreateSection("Custom Fake Cash")
 
 Main:CreateInput({
-   Name = "Set My Name",
-   PlaceholderText = "Type Name...",
+   Name = "Enter Custom Cash Amount",
+   PlaceholderText = "Type any number (e.g. 500000)",
+   Callback = function(val)
+       -- السكربت يمر على كل واجهات المستخدم ويغير أي نص فيه علامة $
+       local playerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+       for _, v in pairs(playerGui:GetDescendants()) do
+           if v:IsA("TextLabel") then
+               -- يبحث عن النصوص اللي فيها علامة $ أو مرتبطة بالفلوس
+               if v.Text:find("%$") or v.Name:lower():find("money") or v.Name:lower():find("cash") then
+                   v.Text = "$" .. val
+               end
+           end
+       end
+   end,
+})
+
+-- // --- [ إحصائياتك الشخصية ] ---
+Main:CreateSection("My Profile Settings")
+
+Main:CreateInput({
+   Name = "My Fake Name",
+   PlaceholderText = "New Name...",
    Callback = function(t)
        local labels = GetSortedLabels(game.Players.LocalPlayer.Character)
        if #labels >= 2 then labels[2].Text = t elseif #labels == 1 then labels[1].Text = t end
@@ -37,29 +57,27 @@ Main:CreateInput({
 })
 
 Main:CreateInput({
-   Name = "Set My Level (Numbers Only)",
-   PlaceholderText = "e.g. 66",
+   Name = "My Fake Level",
+   PlaceholderText = "New Level...",
    Callback = function(l)
        local labels = GetSortedLabels(game.Players.LocalPlayer.Character)
-       -- استخراج الأرقام فقط وحذف أي حرف (مثل Lv)
-       local numOnly = l:gsub("%D", "") 
+       local numOnly = l:gsub("%D", "")
        if #labels >= 1 then labels[1].Text = numOnly end
    end,
 })
 
--- // --- [ إحصائيات الضحية - بدون حروف ] ---
+-- // --- [ التحكم بالآخرين ] ---
 Main:CreateSection("Target Player (Troll)")
 
 local TargetOther = ""
 Main:CreateInput({
-   Name = "1. Who is the target?",
-   PlaceholderText = "Search player...",
+   Name = "Target Player Name",
+   PlaceholderText = "Search...",
    Callback = function(t) TargetOther = t:lower() end,
 })
 
 Main:CreateInput({
-   Name = "2. Change HIS Name",
-   PlaceholderText = "New fake name...",
+   Name = "Change HIS Name",
    Callback = function(n)
        for _, p in pairs(game.Players:GetPlayers()) do
            if p.Name:lower():find(TargetOther) and p.Character then
@@ -70,29 +88,6 @@ Main:CreateInput({
    end,
 })
 
-Main:CreateInput({
-   Name = "3. Change HIS Level (Numbers Only)",
-   PlaceholderText = "e.g. 1",
-   Callback = function(l)
-       local numOnly = l:gsub("%D", "")
-       for _, p in pairs(game.Players:GetPlayers()) do
-           if p.Name:lower():find(TargetOther) and p.Character then
-               local labels = GetSortedLabels(p.Character)
-               if #labels >= 1 then labels[1].Text = numOnly end
-           end
-       end
-   end,
-})
-
 -- // --- [ Combat ] ---
-Combat:CreateToggle({
-   Name = "Silent Aim",
-   CurrentValue = true,
-   Callback = function(v) getgenv().SilentAim = v end,
-})
-
-Combat:CreateToggle({
-   Name = "Red Tracers",
-   CurrentValue = true,
-   Callback = function(v) getgenv().ShowTracers = v end,
-})
+Combat:CreateToggle({Name = "Silent Aim", CurrentValue = true, Callback = function(v) getgenv().SilentAim = v end})
+Combat:CreateToggle({Name = "Red Tracers", CurrentValue = true, Callback = function(v) getgenv().ShowTracers = v end})
